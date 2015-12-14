@@ -767,7 +767,7 @@ class TableGenerator{
   private static function genToolbarHTMLCode($tableName,$id) {  
     $res = '<div class="toolbar" id="tb'.$id.'" data-count="'.$id.'" style="border:1px solid #CDCDCD;margin:4px 1px;padding:3px;background-color:white;position:relative;display:block;">';
     
-    $res .= '<img src="images/toolbar/Add.png" width="35px" height="35px" id="add" style="cursor:pointer;" id="add'.$id.'" title="新增" onclick="para=\''.$tableName.'\';total_tabs++;addtab(total_tabs,para,\''.add.'\');" />';
+    $res .= '<img src="images/toolbar/Add.png" width="35px" height="35px" id="add" style="cursor:pointer;" id="add'.$id.'" title="新增" onclick="para=\''.$tableName.'\';total_tabs++;addtab(total_tabs,para,\'add\');" />';
     
     $res .= '<img src="images/toolbar/delete.png" width="35px" height="35px" id ="delete'.$id.'" style="cursor:pointer;" title="删除"  />';
     $res .= '<img src="images/toolbar/edit_64.png" width="35px" height="35px" id="edit'.$id.'" style="cursor:pointer;" title="编辑" />'; 

@@ -1,5 +1,5 @@
 <?php
-  include_once('../admin.bootstraps.php');
+  include_once(dirname(__FILE__).'/../admin.bootstraps.php');
   include_once('tablegenerater.class.php');
 	$tableName = $_GET["tableName"];
 	$currPage = $_GET["currPage"];
