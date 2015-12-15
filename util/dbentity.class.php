@@ -526,8 +526,8 @@ class DBEntityAdaptor {
 	public function deleteMainData($data,$definition,$condition="") {
 		$tablename = $definition['table'];
 		$sql = GetDeleteSQL($tablename,$data);
-		// $ret = MySQLRunSQL($sql,DBName);
-		echo $sql.'<br>';
+		$ret = MySQLRunSQL($sql,DBName);
+		// echo $sql.'<br>';
 		return $ret;
 	}
 
@@ -684,8 +684,8 @@ class DBEntityAdaptor {
 	public function deleteForeignTableData($ftable,$lk,$fkv,$condition="") {
 		$sql = GetDeleteSQLFK($ftable,$lk,$fkv,' and `status`=1'.$condition);
 		if($sql != null) {
-			// $ret = MySQLRunSQL($sql,DBName);
-			echo $sql.'<br>';
+			$ret = MySQLRunSQL($sql,DBName);
+			// echo $sql.'<br>';
 		}
 		return $ret;
 	}

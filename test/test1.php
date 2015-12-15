@@ -8,7 +8,7 @@ include_once('../admin.bootstraps.php');
 
 $dbea = new DBEntityAdaptor('product');
 $productList = $dbea->ReadFromDBByID('product','4263');
-// var_dump($productList);
+var_dump($productList);
 
 // $s = 'd';
 // $ss = explode(',', $s);
@@ -19,7 +19,7 @@ $productList = $dbea->ReadFromDBByID('product','4263');
 // $name = strpos($name, ',') > 0 ? explode(',', $name) : $name;
 // var_dump($name);
 // echo json_encode($productList);
-$ret = $dbea->DeleteToDB($productList,'product');
+// $ret = $dbea->DeleteToDB($productList,'product');
 // echo json_encode($productList);
 
 // test($productList);

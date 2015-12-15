@@ -1,6 +1,6 @@
 <?php
   include_once(dirname(__FILE__).'/../admin.bootstraps.php');
-  include_once('tablegenerater.class.php');
+  include_once(dirname(__FILE__).'/tablegenerater.class.php');
 	$tableName = $_GET["tableName"];
 	$currPage = $_GET["currPage"];
 	$method = $_GET["method"];
