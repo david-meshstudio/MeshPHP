@@ -177,8 +177,10 @@ function GetUpdateSQL($tableName,$object) {
     $res = 'update `'.$tableName.'` set ';
     $id = 0;
     foreach($object as $k=>$v) {
-        if($k == 'id' || $k === 'ID') {
+        if(is_array($v)) continue;
+        if($k === 'id' || $k === 'ID') {
             $id = $v;
+            continue;
         }
         $res .= "`".$k."` = '".$v."',";
     }
@@ -187,8 +189,99 @@ function GetUpdateSQL($tableName,$object) {
     return $res;
 }
 
+function GetUpdateSQLI($tableName,&$object) {
+    $id = array_key_exists('id', $object) ? $object['id'] : $object['ID'];
+    if($id > 0) {
+        $res = 'update `'.$tableName.'` set ';
+        $id = 0;
+        foreach($object as $k=>$v) {
+            if(is_array($v)) continue;
+            if($k === 'id' || $k === 'ID') {
+                $id = $v;
+                continue;
+            }
+            $res .= "`".$k."` = '".$v."',";
+        }
+        $res = substr($res,0,-1);
+        $res .= ' where `id`='.$id.';';
+    } else {
+        $res = GetInsertSQL($tableName,$object);
+        if($object[$lk] === null || $object[$lk] === '' || $lk === 'id' || $lk === 'ID') {
+            $sql = "select `".$lk."` from `".$tableName."` order by `id` DESC limit 0,1;";
+            $ret = MySQLGetData($sql);
+            $object[$lk] = $ret[0][$lk];
+        }
+    }
+    return $res;
+}
+
+function GetUpdateSQLFK($tableName,&$object, $lk, $fkv, $condition="") {
+    $id = array_key_exists('id', $object) ? $object['id'] : $object['ID'];
+    if($id > 0) {
+        $res = 'update `'.$tableName.'` set ';
+        $id = 0;
+        foreach($object as $k=>$v) {
+            if(is_array($v)) continue;
+            if($k === 'id' || $k === 'ID') {
+                $id = $v;
+                continue;
+            }
+            $res .= "`".$k."` = '".$v."',";
+        }
+        $res = substr($res,0,-1);
+        $res .= " where `".$lk."` = '".$fkv."'".$condition.";";
+    } else {
+        $res = GetInsertSQL($tableName,$object);
+        if($object[$lk] === null || $object[$lk] === '' || $lk === 'id' || $lk === 'ID') {
+            $sql = "select `".$lk."` from `".$tableName."` order by `id` DESC limit 0,1;";
+            $ret = MySQLGetData($sql);
+            $object[$lk] = $ret[0][$lk];
+        }
+    }
+    return $res;
+}
+
+function GetUpdateSQLRelation($tableName,&$object, $lk, $rfk, $rtable, $rmk, $mkv, $condition="") {
+    $id = array_key_exists('id', $object) ? $object['id'] : $object['ID'];
+    if($id > 0) {
+        $res = 'update `'.$tableName.'` set ';
+        $id = 0;
+        foreach($object as $k=>$v) {
+            if(is_array($v)) continue;
+            if($k === 'id' || $k === 'ID') {
+                $id = $v;
+                continue;
+            }
+            $res .= "`".$k."` = '".$v."',";
+        }
+        $res = substr($res,0,-1);
+        $res .= " where `".$lk."` in (select `".$rfk."` from `".$rtable."` where `status` = 1 and `".$rmk."` = '".$mkv."'".$condition.");";
+        $res = array($res);
+    } else {
+        $res = array();
+        $res[] = GetInsertSQL($tableName,$object);
+        if($object[$lk] === null || $object[$lk] === '' || $lk === 'id' || $lk === 'ID') {
+            $sql = "select `".$lk."` from `".$tableName."` order by `id` DESC limit 0,1;";
+            $ret = MySQLGetData($sql);
+            $object[$lk] = $ret[0][$lk];
+        }
+        $res[] = "insert into `".$rtable."` (`".$rfk."`,`".$rmk."`) values ('".$object[$lk]."','".$mkv."');";
+    }
+    return $res;
+}
+
 function GetDeleteByIDSQL($tableName,$id) {
     $sql = "delete from `".$tableName."` where `id` =".$id."";
+    return $sql;
+}
+
+function GetDeleteSQLFK($tableName,$lk,$fkv,$idList,$condition="") {
+    $sql = "delete from `".$tableName."` where `".$lk."` = '".$fkv."' and `id` not in ('".implode("','", $idList)."')".$condition.";";
+    return $sql;
+}
+
+function GetDeleteSQLRelation($tableName,$rmk,$fkv,$rfk,$lkvList,$condition="") {
+    $sql = "delete from `".$tableName."` where `".$rmk."` = '".$fkv."' and `".$rfk."` not in ('".implode("','", $lkvList)."')".$condition.";";
     return $sql;
 }
 

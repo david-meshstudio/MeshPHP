@@ -24,17 +24,17 @@ if($method == 'check' && checkLegelName($account) && strtolower($vcode) == strto
 	echo $ret;
 } else if($method === 'login') {
 	$_SESSION['cusr']=$account;
-  	// $_SESSION['cak']=$data[0]['accesskey'];
-  	// $_SESSION['csk']=$data[0]['secretkey'];
+    // $_SESSION['cak']=$data[0]['accesskey'];
+    // $_SESSION['csk']=$data[0]['secretkey'];
 	echo $_SESSION['cusr'];
 } else if($method === 'logout') {
 	$_SESSION['cusr']='';
-  	// $_SESSION['cak']=$data[0]['accesskey'];
-  	// $_SESSION['csk']=$data[0]['secretkey'];
+    // $_SESSION['cak']=$data[0]['accesskey'];
+    // $_SESSION['csk']=$data[0]['secretkey'];
 	echo $_SESSION['cusr'];
 } else if($method === 'session') {
 	echo $_SESSION['cusr'];
-  	// $_SESSION['cak']=$data[0]['accesskey'];
-  	// $_SESSION['csk']=$data[0]['secretkey'];
+    // $_SESSION['cak']=$data[0]['accesskey'];
+    // $_SESSION['csk']=$data[0]['secretkey'];
 }
 ?>
