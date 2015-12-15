@@ -19,8 +19,8 @@ $productList = $dbea->ReadFromDBByID('product','4263');
 // $name = strpos($name, ',') > 0 ? explode(',', $name) : $name;
 // var_dump($name);
 // echo json_encode($productList);
-// $ret = $dbea->WriteToDB($productList,'product');
-echo json_encode($productList);
+$ret = $dbea->DeleteToDB($productList,'product');
+// echo json_encode($productList);
 
 // test($productList);
 // echo json_encode($productList);

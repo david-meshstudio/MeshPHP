@@ -336,13 +336,13 @@ class DBEntityAdaptor {
 
 	public function loopUpdateListData(&$data,$layer,$name,$definition,$condition="") {
 		if($layer === '2') {
-			$ret = $this->deleteListData($data,$name,$definition,$condition);
+			$ret = $this->updateDeleteListData($data,$name,$definition,$condition);
 			for($i = 0; $i < count($data[$name]); $i++) {
 				$ret = $this->updateListData($data[$name][$i],$name,$definition,$condition);
 			}
 		} else if($layer === '3') {
 			for($k = 0; $k < count($data[$name[0]]); $k++) {
-				$ret = $this->deleteListData($data[$name[0]],$name[1],$definition,$condition);
+				$ret = $this->updateDeleteListData($data[$name[0]],$name[1],$definition,$condition);
 				for($i = 0; $i < count($data[$name[0]][$k][$name[1]]); $i++) {
 					$ret = $this->updateListData($data[$name[0]][$k][$i][$name[1]],$name[1],$definition,$condition);
 				}
@@ -381,13 +381,13 @@ class DBEntityAdaptor {
 
 	public function loopUpdateRelationData(&$data,$layer,$name,$definition,$condition="") {
 		if($layer === '2') {
-			$ret = $this->deleteRelationData($data,$name,$definition,$condition);
+			$ret = $this->updateDeleteRelationData($data,$name,$definition,$condition);
 			for($i = 0; $i < count($data[$name]); $i++) {
 				$ret = $this->updateRelationData($data[$name][$i],$name,$definition,$condition);
 			}
 		} else if($layer === '3') {
 			for($k = 0; $k < count($data[$name[0]]); $k++) {
-				$ret = $this->deleteRelationData($data[$name[0]],$name[1],$definition,$condition);
+				$ret = $this->updateDeleteRelationData($data[$name[0]],$name[1],$definition,$condition);
 				for($i = 0; $i < count($data[$name[0]][$k][$name[1]]); $i++) {
 					$ret = $this->updateRelationData($data[$name[0]][$k][$i][$name[1]],$name[1],$definition,$condition);
 				}
@@ -443,7 +443,7 @@ class DBEntityAdaptor {
 		return $ret;
 	}
 
-	public function deleteListData($mother,$name,$definition,$condition="") {
+	public function updateDeleteListData($mother,$name,$definition,$condition="") {
 		$fk = $definition['fk'];
 		$fkv = $mother[$fk];
 		$tablename = $definition['ftable'];
@@ -456,7 +456,7 @@ class DBEntityAdaptor {
 		return $ret;
 	}
 
-	public function deleteRelationData($mother,$name,$definition,$condition="") {
+	public function updateDeleteRelationData($mother,$name,$definition,$condition="") {
 		$fk = $definition['fk'];
 		$fkv = $mother[$fk];
 		$ftable = $definition['ftable'];
@@ -473,16 +473,220 @@ class DBEntityAdaptor {
 	}
 
 	public function removeForeignTableData($tablename,$lk,$fkv,$idList,$condition="") {
-		$sql = GetDeleteSQLFK($tablename,$lk,$fkv,$idList,' and `status`=1'.$condition);
+		$sql = GetUpdateDeleteSQLFK($tablename,$lk,$fkv,$idList,' and `status`=1'.$condition);
 		$ret = MySQLRunSQL($sql,DBName);
 		// echo $sql.'<br>';
 		return $ret;
 	}
 
 	public function removeRelationTableData($tablename,$rmk,$fkv,$rfk,$lkvList,$condition="") {
-		$sql = GetDeleteSQLRelation($tablename,$rmk,$fkv,$rfk,$lkvList,' and `status`=1'.$condition);
+		$sql = GetUpdateeDeleteSQLRelation($tablename,$rmk,$fkv,$rfk,$lkvList,' and `status`=1'.$condition);
 		$ret = MySQLRunSQL($sql,DBName);
 		// echo $sql.'<br>';
+		return $ret;
+	}
+
+	// delete
+
+	public function DeleteToDB($data,$name) {
+		foreach ($data as &$item) {
+			$this->DeleteToDBSingle($item,$name);
+		}
+	}
+
+	public function DeleteToDBSingle($data,$name) {
+		$definitionList = GetEntityDefinition($name);
+		foreach ($definitionList as $key => $definition) {
+			$keyPara = explode('_', $key);
+			$layer = $keyPara[0];
+			$type = $keyPara[1];
+			$name = $keyPara[2];
+			$name = strpos($name, ',') > 0 ? explode(',', $name) : $name;
+			switch ($type) {
+				case 'main':
+					$ret = $this->deleteMainData($data,$definition,$condition);
+					break;
+				case 'add':
+					$ret = $this->loopDeleteAddData($data,$layer,$name,$keyPara[3],$definition);
+					break;
+				case 'list':
+					$ret = $this->loopDeleteListData($data,$layer,$name,$definition);
+					break;
+				case 'relation':
+					$ret = $this->loopDeleteRelationData($data,$layer,$name,$definition);
+					break;
+				default:
+					# code...
+					break;
+			}
+		}
+		return $ret;
+	}
+
+	public function deleteMainData($data,$definition,$condition="") {
+		$tablename = $definition['table'];
+		$sql = GetDeleteSQL($tablename,$data);
+		// $ret = MySQLRunSQL($sql,DBName);
+		echo $sql.'<br>';
+		return $ret;
+	}
+
+	public function loopDeleteAddData($data,$layer,$name,$aname,$definition,$condition="") {
+		if($layer === '1') {
+			$ret = $this->deleteAddData($data,$aname,$definition,$condition);
+		} else if($layer === '2') {
+			for($i = 0; $i < count($data[$name]); $i++) {
+				$ret = $this->deleteAddData($data[$name][$i],$aname,$definition,$condition);
+			}
+		} else if($layer === '3') {
+			for($i = 0; $i < count($data[$k][$name[0]]); $i++) {
+				for($j = 0; $j < count($data[$name[0]][$i][$name[1]]); $j++) {
+					$ret = $this->deleteAddData($data[$name[0]][$i][$name[1]][$j],$aname,$definition,$condition);
+				}
+			}
+		}
+		return $ret;
+	}
+
+	public function deleteAddData($mother,$name,$definition,$condition="") {
+		$mode = $definition['mode'];
+		if($mode === 'base') {
+			$ret = $this->deleteAddDataBase($mother,$name,$definition,$condition);
+		} else if($mode === 'selflink') {
+			$ret = $this->deleteAddDataSelflink($mother,$name,$definition,$condition);
+		} else if($mode === 'select') {
+			$ret = $this->deleteAddDataSelect($mother,$name,$definition,$condition);
+		}
+		return $ret;
+	}
+
+	public function deleteAddDataBase($mother,$name,$definition,$condition="") {
+		$fk = $definition['fk'];
+		$fkv = $mother[$fk];
+		$ftable = $definition['ftable'];
+		$lk = $definition['lk'];
+		$ret = $this->deleteForeignTableData($ftable,$lk,$fkv,$condition);
+		return $ret;
+	}
+
+	public function deleteAddDataSelflink($mother,$name,$definition,$condition="") {
+		$fk = $definition['fk'];
+		$fkv = $mother[$fk];
+		$ftable = $definition['ftable'];
+		$lk = $definition['lk'];
+		$para = $definition['para'];
+		if(count($mother[$name]) > 0) {
+			$ret = $this->deleteForeignTableData($ftable,$lk,$fkv,$condition);
+			$definition = array('fk'=>$para[0],'ftable'=>$ftable,'lk'=>$para[1],'mode'=>'selflink','para'=>$para);
+			$ret = $this->deleteAddDataSelflink($mother[$name],$name,$definition,$condition);
+		}
+		return $ret;
+	}
+
+	public function deleteAddDataSelect($mother,$name,$definition,$condition="") {
+		$para = $definition['para'];
+		foreach ($para as $item) {
+			$condition .= " and `".$item[0]."` = '".$item[1]."'";
+		}
+		$ret = $this->deleteAddDataBase($mother,$name,$definition,$condition);
+		return $ret;
+	}
+
+	public function loopDeleteListData($data,$layer,$name,$definition,$condition="") {
+		if($layer === '2') {
+			for($i = 0; $i < count($data[$name]); $i++) {
+				$ret = $this->deleteListData($data[$name][$i],$name,$definition,$condition);
+			}
+		} else if($layer === '3') {
+			for($k = 0; $k < count($data[$name[0]]); $k++) {
+				for($i = 0; $i < count($data[$name[0]][$k][$name[1]]); $i++) {
+					$ret = $this->deleteListData($data[$name[0]][$k][$i][$name[1]],$name[1],$definition,$condition);
+				}
+			}
+		}
+		return $ret;
+	}
+
+	public function deleteListData($mother,$name,$definition,$condition="") {
+		$mode = $definition['mode'];
+		if($mode === 'base') {
+			$ret = $this->deleteListDataBase($mother,$name,$definition,$condition);
+		} else if($mode === 'select') {
+			$ret = $this->deleteListDataSelect($mother,$name,$definition,$condition);
+		}
+		return $ret;
+	}
+
+	public function deleteListDataBase($mother,$name,$definition,$condition="") {
+		$fk = $definition['fk'];
+		$fkv = $mother[$fk];
+		$ftable = $definition['ftable'];
+		$lk = $definition['lk'];
+		$ret = $this->deleteForeignTableData($ftable,$lk,$fkv,$condition);
+		return $ret;
+	}
+
+	public function deleteListDataSelect($mother,$name,$definition,$condition="") {
+		$para = $definition['para'];
+		foreach ($para as $item) {
+			$condition .= " and `".$item[0]."` = '".$item[1]."'";
+		}
+		$ret = $this->deleteListDataBase($mother,$name,$definition,$condition);
+		return $ret;
+	}
+
+	public function loopDeleteRelationData($data,$layer,$name,$definition,$condition="") {
+		if($layer === '2') {
+			for($i = 0; $i < count($data[$name]); $i++) {
+				$ret = $this->deleteRelationData($data[$name][$i],$name,$definition,$condition);
+			}
+		} else if($layer === '3') {
+			for($k = 0; $k < count($data[$name[0]]); $k++) {
+				for($i = 0; $i < count($data[$name[0]][$k][$name[1]]); $i++) {
+					$ret = $this->deleteRelationData($data[$name[0]][$k][$i][$name[1]],$name[1],$definition,$condition);
+				}
+			}
+		}
+		return $ret;
+	}
+
+	public function deleteRelationData($mother,$name,$definition,$condition="") {
+		$mode = $definition['mode'];
+		if($mode === 'base') {
+			$ret = $this->deleteRelationDataBase($mother,$name,$definition,$condition);
+		} else if($mode === 'select') {
+			$ret = $this->deleteRelationDataSelect($mother,$name,$definition,$condition);
+		}
+		return $ret;
+	}
+
+	public function deleteRelationDataBase($mother,$name,$definition,$condition="") {
+		$fk = $definition['fk'];
+		$fkv = $mother[$fk];
+		$ftable = $definition['ftable'];
+		$lk = $definition['lk'];
+		$rtable = $definition['rtable'];
+		$rmk = $definition['rmk'];
+		$rfk = $definition['rfk'];
+		$ret = $this->deleteForeignTableData($rtable,$rmk,$fkv,$condition);
+		return $ret;
+	}
+
+	public function deleteRelationDataSelect($mother,$name,$definition,$condition="") {
+		$para = $definition['para'];
+		foreach ($para as $item) {
+			$condition .= " and `".$item[0]."` = '".$item[1]."'";
+		}
+		$ret = $this->deleteRelationDataBase($mother,$name,$definition,$condition);
+		return $ret;
+	}
+
+	public function deleteForeignTableData($ftable,$lk,$fkv,$condition="") {
+		$sql = GetDeleteSQLFK($ftable,$lk,$fkv,' and `status`=1'.$condition);
+		if($sql != null) {
+			// $ret = MySQLRunSQL($sql,DBName);
+			echo $sql.'<br>';
+		}
 		return $ret;
 	}
 }

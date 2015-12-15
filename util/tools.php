@@ -275,13 +275,30 @@ function GetDeleteByIDSQL($tableName,$id) {
     return $sql;
 }
 
-function GetDeleteSQLFK($tableName,$lk,$fkv,$idList,$condition="") {
+function GetDeleteSQL($tableName,$object) {
+    $id = array_key_exists('id', $object) ? $object['id'] : $object['ID'];
+    if($id > 0) {
+        $ret = GetDeleteByIDSQL($tableName,$id);
+    }
+    return $ret;
+}
+
+function GetUpdateDeleteSQLFK($tableName,$lk,$fkv,$idList,$condition="") {
     $sql = "delete from `".$tableName."` where `".$lk."` = '".$fkv."' and `id` not in ('".implode("','", $idList)."')".$condition.";";
     return $sql;
 }
 
-function GetDeleteSQLRelation($tableName,$rmk,$fkv,$rfk,$lkvList,$condition="") {
+function GetUpdateeDeleteSQLRelation($tableName,$rmk,$fkv,$rfk,$lkvList,$condition="") {
     $sql = "delete from `".$tableName."` where `".$rmk."` = '".$fkv."' and `".$rfk."` not in ('".implode("','", $lkvList)."')".$condition.";";
+    return $sql;
+}
+
+function GetDeleteSQLFK($tableName, $lk, $fkv, $condition="") {
+    if($lk === 'id' || $lk === 'ID') {
+        $sql = null;
+    } else {
+        $sql = "delete from `".$tableName."` where `".$lk."` = '".$fkv."'".$condition.";";
+    }
     return $sql;
 }
 
